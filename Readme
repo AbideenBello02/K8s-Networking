@@ -1,0 +1,56 @@
+# Kubernetes Network Hands-On Application
+
+This project demonstrates the deployment and communication of three backend APIs (`Auth API`, `Users API`, and `Tasks API`) in a Kubernetes environment. Each API is containerized and deployed as a separate service, showcasing how pods and services interact within a Kubernetes cluster.
+
+## Overview
+
+The application consists of three backend APIs:
+
+1. **Auth API**: Handles authentication and token verification.
+2. **Users API**: Manages user creation and login, interacting with the Auth API for authentication.
+3. **Tasks API**: Manages task creation and retrieval, requiring authentication via the Auth API.
+
+The goal of this project is to manage container communication and interactions within a Kubernetes cluster.
+
+## Architecture
+
+### APIs
+
+- **Auth API**:
+  - Provides endpoints for token generation and verification.
+  - Exposed as a `ClusterIP` service to restrict external access.
+
+- **Users API**:
+  - Handles user signup and login.
+  - Communicates with the Auth API for password hashing and token generation.
+  - Exposed as a `LoadBalancer` service for external access.
+
+- **Tasks API**:
+  - Handles task creation and retrieval.
+  - Requires token verification via the Auth API.
+  - Exposed as a `LoadBalancer` service for external access.
+
+### Kubernetes Resources
+
+- **Deployments**:
+  - Each API is deployed as a separate deployment with a single replica.
+  - Environment variables are used for inter-service communication.
+
+- **Services**:
+  - `ClusterIP` service for the Auth API to restrict external access.
+  - `LoadBalancer` services for the Users API and Tasks API to allow external access.
+
+### Note
+
+In this hands-on project, comments have been added to the deployment files to clarify how communication is handled within the Kubernetes cluster. These include:
+
+- **Pod Internal Communication**: Explains scenarios where multiple containers run within a single pod and communicate internally.
+- **Cluster Communication**: Describes how containers running in separate pods communicate across the cluster.
+
+Additionally, comments highlight how environment variables are referenced, including:
+
+1. **Hardcoding Values**: Directly specifying environment variable values.
+2. **Using Object Domain Names**: Leveraging Kubernetes DNS for service discovery.
+3. **Kubernetes Auto-Generated Environment Variables**: Utilizing the environment variables automatically created by Kubernetes for services.
+
+These annotations aim to provide a deeper understanding of Kubernetes networking and service discovery mechanisms.

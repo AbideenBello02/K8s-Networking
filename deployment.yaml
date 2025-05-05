@@ -1,0 +1,121 @@
+# User API deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-api-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: users
+  template:
+    metadata:
+      labels:
+        app: users
+    spec:
+      containers:
+      - name: users
+        image: abideenbello/user-api:2.0
+        env: 
+          - name: AUTH_ADDRESS
+            value: localhost # this is the address of the auth container running in the same pod. using this approach a new container (auth) will be created in the same template as the user container like below.
+      - name: auth
+        image: abideenbello/auth-api:latest
+        
+# The AUTH_ADDRESS environment variable is set to localhost, which means that the user API will try to connect to the auth API using the localhost address.
+# This is only possible if both containers are running in the same Pod. If they are in different Pods, we need to use a service to connect to the auth container.
+# In this case, we use a cluster IP address/ service_name.Namespace  instaed of localhost.
+
+---
+# User API service
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-api-service
+spec:
+  selector:
+    app: users
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: LoadBalancer
+
+---
+# Auth API deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-api-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+      - name: auth
+        image: abideenbello/auth-api:latest
+        imagePullPolicy: Always
+
+---
+# Auth API service
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-api-service
+spec:
+  selector:
+    app: auth
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP # LoadBalancer type was not used to avoid exposing the service to the internet.
+
+---
+# Now to the last Api (task-api) deployment.
+# Task API deployment
+apiVersion. apps:v1
+kind:Deployment
+metadata:
+  name: task-api-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tasks
+  template:
+    metadata:
+      labels:
+        app: tasks
+    spec:
+      containers:
+      - name: tasks
+        image: abideenbello/task-api:latest
+        imagePullPolicy: Always
+        env: 
+          - name: AUTH_ADDRESS
+            value: auth-api-service.default # using domain name instead of cluster IP address. another approach would be to use the K8(s) auto-generated env in our source code (AUTH_API_SERVICE_SERVICE_HOST).
+          - name: TASKS_FOLDER
+            value: tasks
+---
+# Task API service
+
+apiVersion: v1 
+kind: Service
+metadata:
+  name: task-api-service
+spec:
+  selector:
+    app: tasks
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+  type: LoadBalancer # this exposes the service to the internet.
+
