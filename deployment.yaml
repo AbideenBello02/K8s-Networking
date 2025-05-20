@@ -119,3 +119,27 @@ spec:
       targetPort: 8000
   type: LoadBalancer # this exposes the service to the internet.
 
+# ingress resource
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: task-api-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: my-task-api.example.com # this is the domain name we will use to access the task api.
+      http:
+        paths:
+          - path: /user-api-service
+            backend:
+              serviceName: user-api-service
+              servicePort: 8080
+          - path: /task-api-service
+            backend:
+              serviceName: task-api-service
+              servicePort: 8000
+      # when using subdomains we use muliple hosts instead of one host with multiple paths.
+
+      
